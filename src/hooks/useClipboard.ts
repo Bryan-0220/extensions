@@ -2,47 +2,29 @@ import { Clipboard } from "@raycast/api";
 import { useEffect, useState } from "react";
 
 type SelectionState = {
-  text: string;
-  isLoading: boolean;
+    text: string;
+    isLoading: boolean;
 };
 
 export function useSelectionOrClipboard(): SelectionState {
-  const [text, setText] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+    const [text, setText] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    let isActive = true;
-
-    async function loadText() {
-      setIsLoading(true);
-
-      try {
-        let nextText = "";
-        try {
-          const clipboardText = await Clipboard.readText();
-          if (clipboardText) {
-            nextText = clipboardText;
-          }
-        } catch {
-          nextText = "";
+    useEffect(() => {
+        async function fetchClipboardText() {
+            setIsLoading(true);
+            try {
+                const clipboardText = await Clipboard.readText();
+                setText(clipboardText ?? "");
+            } catch {
+                setText("");
+            } finally {
+                setIsLoading(false);
+            }
         }
 
-        if (isActive) {
-          setText(nextText);
-        }
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
-      }
-    }
+        fetchClipboardText();
+    }, []);
 
-    loadText();
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  return { text, isLoading };
+    return { text, isLoading };
 }

@@ -12,12 +12,10 @@ import {
   Toast,
   useNavigation,
 } from "@raycast/api";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useSelectionOrClipboard } from "./hooks/useClipboard";
 import * as scripts from "./script";
 import { Category, Info, Result, Run, RunType, Script } from "./script/type";
-
-let isClipboardScriptRunning = false;
 
 const preferences = getPreferenceValues();
 
@@ -55,6 +53,7 @@ export default function ToolboxList() {
 
 const ListItem = React.memo(function ListItem(props: { item: Script; inputText: string; isInputLoading: boolean }) {
   const { pop, push } = useNavigation();
+  const isClipboardScriptRunning = useRef(false);
 
   const item = props.item;
   const info = item.info;
@@ -94,29 +93,29 @@ const ListItem = React.memo(function ListItem(props: { item: Script; inputText: 
   }
 
   async function action(runType: RunType) {
-    if (isClipboardScriptRunning) return;
+    if (isClipboardScriptRunning.current) return;
 
     if (runType === "clipboard") {
-      isClipboardScriptRunning = true;
-      const query = await isClipboardContent();
-
-      let scriptResult = { result: "", isSuccess: false };
-      if (query) {
-        scriptResult = runScript(item.run, query);
-        if (scriptResult.isSuccess) {
-          await Clipboard.copy(scriptResult.result);
-          await copyAction(pop);
-        }
+      if (!inputText) {
+        openInputView(runType);
+        return;
       }
-      isClipboardScriptRunning = false;
+
+      isClipboardScriptRunning.current = true;
+      const scriptResult = runScript(item.run, inputText);
+
       if (scriptResult.isSuccess) {
+        await Clipboard.copy(scriptResult.result);
         await showHUD("✅ Result Copied to Clipboard");
+        await copyAction(pop);
       } else {
         if (scriptResult.result) {
           await showToast(Toast.Style.Failure, scriptResult.result);
         }
         openInputView(runType);
       }
+
+      isClipboardScriptRunning.current = false;
     } else {
       openInputView(runType);
     }
@@ -271,7 +270,6 @@ function ResultActionView(props: { content: Result; info: Info }) {
               await copyAction(pop);
             }}
           />
-
           <Action
             title="Copy Query to Clipboard"
             icon={Icon.Clipboard}
@@ -356,14 +354,6 @@ const PREVIEW_MAX_LENGTH = 80;
 function truncatePreview(value: string, maxLength = PREVIEW_MAX_LENGTH) {
   if (value.length <= maxLength) return value;
   return value.slice(0, Math.max(0, maxLength - 3)) + "...";
-}
-
-async function isClipboardContent() {
-  const clipboardText = await Clipboard.readText();
-  if (!clipboardText || clipboardText.length === 0) {
-    return false;
-  }
-  return clipboardText;
 }
 
 function runScript(run: Run, query: string): { result: string; isSuccess: boolean } {
