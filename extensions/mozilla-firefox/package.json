@@ -132,6 +132,7 @@
     "test:run": "vitest run"
   },
   "platforms": [
-    "macOS"
+    "macOS",
+    "Windows"
   ]
 }
