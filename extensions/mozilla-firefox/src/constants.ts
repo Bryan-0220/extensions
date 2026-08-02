@@ -16,6 +16,16 @@ export const DownloadText = `
   [![Mozilla Firefox](https://mozilla.design/files/2019/10/logo-firefox.svg)]()
 `;
 
+export const DownloadTextWindows = `
+  # 🚨Error: Mozilla Firefox browser is not installed
+  ## This extension depends on Mozilla Firefox browser. You must install it to continue.
+  
+  If you have [Winget](https://aka.ms/winget) installed then press ⏎ (Enter Key) to install Mozilla Firefox browser.
+  [Click here](https://www.mozilla.org/en-US/firefox/new/) if you want to download manually.
+  
+  [![Mozilla Firefox](https://mozilla.design/files/2019/10/logo-firefox.svg)]()
+`;
+
 export const NoBookmarksText = `
 # 🚨Error: Mozilla Firefox browser has no bookmarks. Please add some bookmarks to continue using this command.
 

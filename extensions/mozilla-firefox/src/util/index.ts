@@ -3,6 +3,12 @@ import path from "path";
 import { getPreferenceValues } from "@raycast/api";
 
 const userDataDirectoryPath = () => {
+  if (process.platform === "win32") {
+    const appData = process.env.APPDATA;
+    if (!appData) throw new Error("%APPDATA% environment variable is not set.");
+    return path.join(appData, "Mozilla", "Firefox", "Profiles");
+  }
+
   if (!process.env.HOME) {
     throw new Error("$HOME environment variable is not set.");
   }
